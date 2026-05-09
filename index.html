@@ -1,1 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>FSTL COMET OS v5</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+
+<style>
+
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0a0a0a;
+  color:#fff;
+}
+
+/* HEADER */
+header{
+  padding:14px;
+  background:#111;
+  text-align:center;
+  font-weight:bold;
+  border-bottom:1px solid #222;
+}
+
+/* GUIDANCE BAR */
+.guide{
+  padding:10px;
+  text-align:center;
+  font-size:12px;
+  opacity:0.75;
+  border-bottom:1px solid #1f1f1f;
+}
+
+/* DASHBOARD */
+#dashboard{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:10px;
+}
+
+.card{
+  background:#1a1a1a;
+  padding:14px;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+  border:1px solid #222;
+}
+
+/* VIEW */
+#view{
+  padding:12px;
+  height:65vh;
+  overflow:auto;
+}
+
+/* INPUTS */
+textarea{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  background:#222;
+  border:none;
+  border-radius:8px;
+  color:#fff;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  background:#333;
+  border:none;
+  border-radius:8px;
+  color:#fff;
+  font-weight:bold;
+}
+
+/* CASE */
+.case{
+  background:#1a1a1a;
+  margin-bottom:10px;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #222;
+}
+
+/* SMALL TEXT */
+.small{
+  font-size:12px;
+  opacity:0.7;
+  margin-top:6px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+FSTL COMET OS v5 — OFFLINE FIELD INTELLIGENCE SYSTEM
+</header>
+
+<div class="guide">
+COMET OS classifies cases automatically. Enter structured or unstructured information — system will interpret risk in real time.
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+
+  <div class="card" onclick="bus.emit('NEW_CASE')">
+    NEW CASE
+  </div>
+
+  <div class="card" onclick="bus.emit('SHOW_CASES')">
+    CASES
+  </div>
+
+  <div class="card" onclick="bus.emit('HIGH_RISK')">
+    HIGH RISK
+  </div>
+
+  <div class="card" onclick="bus.emit('REPORT')">
+    REPORT
+  </div>
+
+</div>
+
+<div id="view"></div>
+
+<script>
+
+/* =========================
+   SERVICE WORKER
+========================= */
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js");
+  });
+}
+
+/* =========================
+   EVENT BUS
+========================= */
+
+const bus = {
+  events:{},
+
+  emit(e,d){
+    (this.events[e]||[]).forEach(fn=>fn(d));
+  },
+
+  on(e,fn){
+    if(!this.events[e]) this.events[e]=[];
+    this.events[e].push(fn);
+  }
+};
+
+/* =========================
+   DATABASE
+========================= */
+
+let db;
+let cases = [];
+
+function initDB(){
+  return new Promise(res=>{
+    const req = indexedDB.open("comet_os_v5",1);
+
+    req.onupgradeneeded = e=>{
+      const db=e.target.result;
+      const store=db.createObjectStore("cases",{keyPath:"id"});
+      store.createIndex("risk","risk");
+    };
+
+    req.onsuccess = e=>{
+      db=e.target.result;
+      res();
+    };
+  });
+}
+
+function saveCase(c){
+  const tx=db.transaction("cases","readwrite");
+  tx.objectStore("cases").put(c);
+}
+
+function loadCases(){
+  const tx=db.transaction("cases","readonly");
+  const req=tx.objectStore("cases").getAll();
+  req.onsuccess=()=>{
+    cases=req.result||[];
+  };
+}
+
+/* =========================
+   RISK ENGINE
+========================= */
+
+function risk(text){
+  let s=0;
+  text=text.toLowerCase();
+
+  if(!text.includes("name")) s+=30;
+  if(!text.includes("address")) s+=25;
+  if(text.includes("dispute")) s+=20;
+  if(text.includes("missing")) s+=20;
+  if(text.length<30) s+=15;
+
+  if(s>70) return "HIGH";
+  if(s>40) return "MEDIUM";
+  return "LOW";
+}
+
+/* =========================
+   CREATE CASE
+========================= */
+
+bus.on("CREATE",(input)=>{
+
+  const c={
+    id:crypto.randomUUID(),
+    input,
+    risk:risk(input),
+    time:new Date().toISOString()
+  };
+
+  cases.push(c);
+  saveCase(c);
+
+  showCase(c);
+
+});
+
+/* =========================
+   NEW CASE (UX FIXED)
+========================= */
+
+bus.on("NEW_CASE", () => {
+  document.getElementById("view").innerHTML = `
+    <h3>NEW CASE</h3>
+
+    <div class="case" style="opacity:0.85">
+      <b>Example:</b><br/>
+      Land ownership dispute in Abuja, missing title documents and unclear beneficiary.
+    </div>
+
+    <div class="small">
+      Tip: You can enter partial or full descriptions. COMET OS interprets structure automatically.
+    </div>
+
+    <textarea id="input" placeholder="Enter case details..."></textarea>
+
+    <button onclick="submit()">PROCESS CASE</button>
+  `;
+});
+
+/* =========================
+   EMPTY INPUT FIX
+========================= */
+
+function submit(){
+
+  const v=document.getElementById("input").value.trim();
+
+  if(!v){
+    document.getElementById("view").innerHTML=`
+      <h3>INVALID INPUT</h3>
+
+      <div class="case">
+        Case input cannot be empty.
+      </div>
+
+      <button onclick="bus.emit('NEW_CASE')">
+        BACK
+      </button>
+    `;
+    return;
+  }
+
+  bus.emit("CREATE",v);
+}
+
+/* =========================
+   SHOW CASES
+========================= */
+
+bus.on("SHOW_CASES",()=>{
+  render(cases);
+});
+
+/* =========================
+   HIGH RISK
+========================= */
+
+bus.on("HIGH_RISK",()=>{
+  render(cases.filter(c=>c.risk==="HIGH"));
+});
+
+/* =========================
+   REPORT
+========================= */
+
+bus.on("REPORT",()=>{
+  document.getElementById("view").innerHTML=`
+    <h3>SYSTEM REPORT</h3>
+
+    <div class="case">
+      TOTAL CASES: ${cases.length}
+    </div>
+  `;
+});
+
+/* =========================
+   RENDER
+========================= */
+
+function render(list){
+
+  let html="<h3>CASES</h3>";
+
+  list.forEach(c=>{
+    html+=`
+      <div class="case">
+        ${c.input}<br/><br/>
+        <b>RISK:</b> ${c.risk}<br/>
+        <div class="small">${c.time}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById("view").innerHTML=html;
+}
+
+/* =========================
+   INIT
+========================= */
+
+(async function boot(){
+  await initDB();
+  loadCases();
+  bus.emit("NEW_CASE");
+})();
+
+</script>
+
+</body>
+</html>
