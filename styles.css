@@ -1,1 +1,50 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  font-family: system-ui, Arial;
+  background: #f5f5f6;
+}
 
+.comet-frame {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.header {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.block {
+  margin-bottom: 14px;
+}
+
+textarea, input {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+}
+
+.primary {
+  background: #111;
+  color: white;
+}
+
+.secondary {
+  background: #ddd;
+}
