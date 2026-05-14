@@ -1,364 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<title>FSTL COMET OS v8</title>
-
-<link rel="manifest" href="./manifest.json">
-
-<meta name="theme-color" content="#111111">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<title>COMET OS</title>
 
 <style>
-
 /* =========================
-   BASE SYSTEM
+   COMET OS CORE CONTAINMENT SYSTEM
+   FULLY INTEGRATED BUILD
 ========================= */
 
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, Arial;
+  background: #f4f4f6;
+  color: #111;
 }
 
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0a0a0a;
-  color:#fff;
+/* MASTER FRAME */
+.frame {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* =========================
-   HEADER
-========================= */
-
-header{
-  padding:16px;
-  background:#111;
-  text-align:center;
-  font-weight:bold;
-  font-size:20px;
-  border-bottom:1px solid #222;
+/* HEADER */
+.header {
+  font-size: 18px;
+  font-weight: 650;
 }
 
-/* =========================
-   SYSTEM BAR
-========================= */
-
-.systembar{
-  text-align:center;
-  padding:10px;
-  font-size:12px;
-  opacity:0.75;
-  border-bottom:1px solid #1f1f1f;
+/* SUBTEXT */
+.subtext {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.4;
 }
 
-/* =========================
-   VIEW
-========================= */
-
-#view{
-  padding:12px;
-  min-height:80vh;
+/* BLOCKS */
+.block {
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-/* =========================
-   DASHBOARD GRID
-========================= */
+/* INPUT CONTROL */
+textarea {
+  width: 100%;
+  min-height: 140px;
+  font-size: 15px;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 
-#dashboard{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
-.card{
-  background:#1a1a1a;
-  padding:16px;
-  border-radius:10px;
-  text-align:center;
-  cursor:pointer;
-  font-weight:bold;
-  border:1px solid #2a2a2a;
+/* BUTTONS */
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: none;
 }
 
-/* =========================
-   CASE BLOCK
-========================= */
-
-.case{
-  background:#1a1a1a;
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:10px;
-  border:1px solid #2a2a2a;
+.primary {
+  background: #111;
+  color: #fff;
 }
 
-/* =========================
-   INPUT
-========================= */
-
-textarea{
-  width:100%;
-  min-height:140px;
-  padding:12px;
-  border-radius:10px;
-  background:#222;
-  color:#fff;
-  border:none;
-  font-size:15px;
+.secondary {
+  background: #ddd;
+  color: #111;
 }
 
-button{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  background:#333;
-  color:#fff;
-  font-weight:bold;
+/* STATUS */
+.status {
+  font-size: 12px;
+  color: #666;
 }
 
-/* =========================
-   BOOT SCREEN
-========================= */
-
-.boot{
-  text-align:center;
-  padding:40px 20px;
+/* PREVIEW */
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 12px;
 }
 
-.boot-title{
-  font-size:34px;
-  font-weight:bold;
-  margin-bottom:10px;
+/* FORCE NO HORIZONTAL OVERFLOW ANYWHERE */
+* {
+  max-width: 100%;
+  box-sizing: border-box;
 }
-
-.bar{
-  width:100%;
-  height:6px;
-  background:#222;
-  margin-top:20px;
-  overflow:hidden;
-  border-radius:10px;
-}
-
-.bar div{
-  height:100%;
-  width:0%;
-  background:#4caf50;
-  transition:1s;
-}
-
 </style>
-
 </head>
 
 <body>
 
-<header>FSTL COMET OS v8</header>
+<div class="frame">
 
-<div class="systembar">
-OFFLINE FIELD INTELLIGENCE SYSTEM • PWA CORE ACTIVE • NO SERVER DEPENDENCY
+  <div class="header">COMET OS — Transaction Environment</div>
+
+  <div class="subtext">
+    Structured transaction capture, verification, continuity tracking, and immutable record generation.
+  </div>
+
+  <div id="app"></div>
+
+  <div id="status" class="status">System initialized.</div>
+
 </div>
 
-<div id="view"></div>
-
 <script>
-
 /* =========================
-   PWA REGISTRATION
+   COMET OS FULL STATE ENGINE
 ========================= */
 
-if("serviceWorker" in navigator){
+let state = "INPUT";
 
-  window.addEventListener("load",()=>{
+let transaction = {
+  payload: "",
+  reference: "",
+  type: "UNDEFINED",
+  timestamp: null
+};
 
-    navigator.serviceWorker.register("./service-worker.js");
+const app = document.getElementById("app");
+const status = document.getElementById("status");
 
-  });
+/* RENDER ENGINE */
+function render() {
 
-}
+  if (state === "INPUT") {
+    app.innerHTML = `
+      <div class="block">Enter Transaction Payload</div>
 
-/* =========================
-   STATE ENGINE
-========================= */
+      <textarea id="payload"
+        placeholder="Paste structured transaction (tenancy, buy/sell, agreement, etc.)"></textarea>
 
-let cases = JSON.parse(localStorage.getItem("cases") || "[]");
+      <button class="primary" onclick="next()">CONTINUE</button>
+    `;
 
-/* =========================
-   RISK ENGINE
-========================= */
+    status.innerText = "Awaiting structured input.";
+  }
 
-function risk(text){
+  else if (state === "VALIDATION") {
+    app.innerHTML = `
+      <div class="block">Validating Transaction Structure...</div>
+      <div class="block">Checking integrity, completeness, and format consistency.</div>
 
-  let score = 0;
-  text = text.toLowerCase();
+      <button class="primary" onclick="next()">CONTINUE</button>
+      <button class="secondary" onclick="back()">BACK</button>
+    `;
 
-  if(!text.includes("name")) score += 30;
-  if(!text.includes("address")) score += 25;
-  if(text.includes("unclear")) score += 25;
-  if(text.includes("dispute")) score += 20;
-  if(text.length < 30) score += 15;
+    status.innerText = "Validation in progress.";
+  }
 
-  if(score > 70) return "HIGH";
-  if(score > 40) return "MEDIUM";
-  return "LOW";
+  else if (state === "REVIEW") {
+    app.innerHTML = `
+      <div class="block">Review Transaction</div>
 
-}
+      <pre>${transaction.payload}</pre>
 
-/* =========================
-   BOOT SEQUENCE
-========================= */
+      <button class="primary" onclick="next()">PROCESS</button>
+      <button class="secondary" onclick="back()">BACK</button>
+    `;
 
-function boot(){
+    status.innerText = "User confirmation required.";
+  }
 
-  document.getElementById("view").innerHTML = `
-    <div class="boot">
-      <div class="boot-title">COMET OS</div>
-      <div>Initializing offline kernel...</div>
+  else if (state === "PROCESSING") {
+    app.innerHTML = `
+      <div class="block">Processing Transaction...</div>
+      <div class="block">Generating immutable reference and locking record.</div>
 
-      <div class="bar">
-        <div id="b"></div>
+      <button class="primary" onclick="next()">LOCK RECORD</button>
+    `;
+
+    status.innerText = "System processing.";
+  }
+
+  else if (state === "LOCKED") {
+    app.innerHTML = `
+      <div class="block">Transaction Locked</div>
+
+      <div class="block">
+        Reference: <b>${transaction.reference}</b>
       </div>
-    </div>
-  `;
 
-  setTimeout(()=>document.getElementById("b").style.width="100%",800);
-  setTimeout(showDashboard,2000);
+      <button class="primary" onclick="next()">GENERATE PDF</button>
+    `;
 
+    status.innerText = "Record is now immutable.";
+  }
+
+  else if (state === "PDF") {
+    app.innerHTML = `
+      <div class="block">Portable Transaction Record Ready</div>
+
+      <button class="primary" onclick="generatePDF()">DOWNLOAD RECORD</button>
+    `;
+
+    status.innerText = "Export available.";
+  }
 }
 
-/* =========================
-   DASHBOARD
-========================= */
+/* STATE FLOW */
+function next() {
 
-function showDashboard(){
+  if (state === "INPUT") {
+    transaction.payload = document.getElementById("payload").value || "";
+    transaction.timestamp = Date.now();
+    state = "VALIDATION";
+  }
 
-  document.getElementById("view").innerHTML = `
-    <div class="case" style="text-align:center;">
-      <b>COMET OS ACTIVE</b><br>
-      Offline intelligence runtime ready
-    </div>
+  else if (state === "VALIDATION") {
+    transaction.reference = "COMET-" + Date.now();
+    transaction.type = detectType(transaction.payload);
+    state = "REVIEW";
+  }
 
-    <div id="dashboard">
+  else if (state === "REVIEW") {
+    state = "PROCESSING";
+  }
 
-      <div class="card" onclick="newCase()">NEW CASE</div>
-      <div class="card" onclick="showCases()">CASES</div>
-      <div class="card" onclick="showHigh()">HIGH RISK</div>
-      <div class="card" onclick="showReport()">REPORT</div>
+  else if (state === "PROCESSING") {
+    state = "LOCKED";
+  }
 
-    </div>
-  `;
+  else if (state === "LOCKED") {
+    state = "PDF";
+  }
 
+  render();
 }
 
-/* =========================
-   NEW CASE
-========================= */
-
-function newCase(){
-
-  document.getElementById("view").innerHTML = `
-    <h3>NEW CASE</h3>
-
-    <div class="case">
-      Example: Land dispute, missing documents, unclear ownership.
-    </div>
-
-    <textarea id="input"></textarea>
-
-    <button onclick="saveCase()">PROCESS</button>
-  `;
-
+function back() {
+  if (state === "REVIEW") state = "VALIDATION";
+  else if (state === "PROCESSING") state = "REVIEW";
+  else if (state === "LOCKED") state = "PROCESSING";
+  render();
 }
 
-/* =========================
-   SAVE CASE
-========================= */
-
-function saveCase(){
-
-  let input = document.getElementById("input").value;
-
-  if(!input) return;
-
-  let c = {
-    id: crypto.randomUUID(),
-    input,
-    risk: risk(input),
-    time: new Date().toISOString()
-  };
-
-  cases.push(c);
-  localStorage.setItem("cases", JSON.stringify(cases));
-
-  showDashboard();
-
+/* SIMPLE TYPE DETECTION (TENANCY / GENERIC) */
+function detectType(text) {
+  const t = text.toLowerCase();
+  if (t.includes("rent") || t.includes("tenant")) return "TENANCY";
+  if (t.includes("sell") || t.includes("buy")) return "SALE";
+  return "GENERIC";
 }
 
-/* =========================
-   CASE LIST
-========================= */
+/* PDF EXPORT (IMMUTABLE RECORD) */
+function generatePDF() {
 
-function showCases(){
+  const content = `
+COMET OS TRANSACTION RECORD
 
-  document.getElementById("view").innerHTML =
-    cases.map(c => `
-      <div class="case">
-        ${c.input}<br><br>
-        <b>${c.risk}</b>
-      </div>
-    `).join("");
+REFERENCE: ${transaction.reference}
+TYPE: ${transaction.type}
+TIMESTAMP: ${new Date(transaction.timestamp).toISOString()}
 
+----------------------------------------
+PAYLOAD
+----------------------------------------
+${transaction.payload}
+
+----------------------------------------
+STATUS: LOCKED (IMMUTABLE RECORD)
+`;
+
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = transaction.reference + ".txt";
+  a.click();
+
+  URL.revokeObjectURL(url);
 }
 
-/* =========================
-   HIGH RISK
-========================= */
-
-function showHigh(){
-
-  document.getElementById("view").innerHTML =
-    cases.filter(c=>c.risk==="HIGH")
-    .map(c=>`
-      <div class="case">${c.input}</div>
-    `).join("");
-
-}
-
-/* =========================
-   REPORT
-========================= */
-
-function showReport(){
-
-  let h = cases.filter(c=>c.risk==="HIGH").length;
-  let m = cases.filter(c=>c.risk==="MEDIUM").length;
-  let l = cases.filter(c=>c.risk==="LOW").length;
-
-  document.getElementById("view").innerHTML = `
-    <div class="case">
-      TOTAL: ${cases.length}<br>
-      HIGH: ${h}<br>
-      MEDIUM: ${m}<br>
-      LOW: ${l}
-    </div>
-  `;
-
-}
-
-/* =========================
-   INIT
-========================= */
-
-boot();
+/* INIT */
+render();
 
 </script>
 
